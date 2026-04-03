@@ -22,7 +22,7 @@
         #btn-admin-access { left: 20px; background: #333; opacity: 0.3; }
         #btn-empresa-access { right: 20px; background: var(--blue); }
         .hidden { display: none !important; }
-        .back-btn { margin-bottom: 20px; border: none; background: none; color: #666; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .back-btn { border: none; background: none; color: #666; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
         .btn-ws { background: #25d366; color: white; border-radius: 12px; font-weight: bold; border: none; text-decoration: none; display: block; text-align: center; }
         .security-box { background: #fffcfc; border: 1px dashed #ffcccc; padding: 15px; border-radius: 15px; margin-top: 20px; }
         .price-card { border: none; border-radius: 25px; transition: 0.3s; background: white; }
@@ -116,7 +116,7 @@
 </div>
 
 <div id="view-login" class="container py-5 hidden">
-    <button class="back-btn" onclick="show('public')"><i class="bi bi-arrow-left"></i> Volver</button>
+    <button class="back-btn mb-3" onclick="show('public')"><i class="bi bi-arrow-left"></i> Volver</button>
     <div class="row justify-content-center">
         <div class="col-md-4 card p-4 border-0 shadow-sm rounded-4">
             <h4 class="text-center fw-bold mb-4">Acceso Empresas</h4>
@@ -128,7 +128,10 @@
 </div>
 
 <div id="view-perfil" class="container py-5 hidden">
-    <button class="back-btn" onclick="show('public')"><i class="bi bi-arrow-left"></i> Volver</button>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="back-btn" onclick="show('public')"><i class="bi bi-arrow-left"></i> Volver al Inicio</button>
+        <button class="btn btn-outline-danger btn-sm rounded-pill fw-bold" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button>
+    </div>
     <div class="card p-4 border-0 shadow-sm rounded-4">
         <h3 class="fw-bold mb-4">Configuración de tu Negocio</h3>
         <div class="row g-4">
@@ -144,8 +147,8 @@
                     <div class="col-md-6 mb-3"><input type="text" id="edit-dir" class="form-control" placeholder="Dirección física"></div>
                 </div>
                 <div class="security-box">
-                    <h6 class="fw-bold text-danger mb-2"><i class="bi bi-shield-lock"></i> Seguridad</h6>
-                    <p class="small text-muted mb-2">Confirma tus datos para guardar cambios.</p>
+                    <h6 class="fw-bold text-danger mb-2"><i class="bi bi-shield-lock"></i> Confirmación de Seguridad</h6>
+                    <p class="small text-muted mb-2">Para guardar cambios, confirma tus credenciales:</p>
                     <input type="email" id="edit-confirm-email" class="form-control form-control-sm mb-2" placeholder="Tu Correo">
                     <input type="password" id="edit-confirm-pass" class="form-control form-control-sm" placeholder="Tu Contraseña">
                 </div>
@@ -156,7 +159,7 @@
 </div>
 
 <div id="view-admin" class="container py-5 hidden">
-    <button class="back-btn" onclick="show('public')"><i class="bi bi-arrow-left"></i> Salir de Admin</button>
+    <button class="back-btn mb-3" onclick="show('public')"><i class="bi bi-arrow-left"></i> Salir de Admin</button>
     <div class="card p-4 bg-dark text-white rounded-4 shadow">
         <h4 class="fw-bold mb-4">Panel Maestro</h4>
         <div class="row g-2 mb-4 border-bottom pb-4">
@@ -187,9 +190,6 @@
 
 <script>
     const IMGBB = "ea6e5df385b34b9d4479cabccf7d7b15";
-    let token = localStorage.getItem('lh-token');
-
-    // --- CAMBIO CLAVE: USAR RUTAS RELATIVAS PARA RENDER ---
     const API_URL = "";
 
     function show(id) {
@@ -219,10 +219,8 @@
             const cats = await res.json();
             const select = document.getElementById('filter-cat');
             if(!select) return;
-            const currentVal = select.value;
             select.innerHTML = '<option value="Todas">Todas las categorías</option>';
             cats.forEach(c => { if(c) select.innerHTML += `<option value="${c}">${c}</option>`; });
-            select.value = currentVal;
         } catch(e) { console.log("Error cargando categorías"); }
     }
 
@@ -231,39 +229,26 @@
         try {
             const filter = document.getElementById('filter-cat').value;
             const res = await fetch(`${API_URL}/api/empresas`);
-            if(!res.ok) throw new Error();
             let data = await res.json();
-
             data.sort((a, b) => (a.plan === 'premium' ? -1 : (b.plan === 'premium' ? 1 : 0)));
             if(filter !== "Todas") data = data.filter(e => e.categoria === filter);
-
-            if(data.length === 0) {
-                listado.innerHTML = "<p class='text-center text-muted w-100 mt-4'>No hay negocios registrados aún.</p>";
-                return;
-            }
-
+            if(data.length === 0) { listado.innerHTML = "<p class='text-center w-100'>No hay negocios.</p>"; return; }
             listado.innerHTML = data.map(e => `
                 <div class="col">
                     <div class="card card-biz ${e.plan}">
                         <div class="img-box"><img src="${e.logoUrl || 'https://via.placeholder.com/300'}" alt="${e.nombre}"></div>
                         <div class="card-body p-4">
                             <span class="cat-tag">${e.categoria || 'Local'}</span>
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <h5 class="fw-bold mb-0">${e.nombre}</h5>
-                                ${e.plan === 'premium' ? '<i class="bi bi-patch-check-fill text-warning fs-5"></i>' : ''}
-                            </div>
+                            <h5 class="fw-bold">${e.nombre}</h5>
                             <p class="small text-muted mb-3">${e.descripcion || 'Sin descripción'}</p>
                             ${e.whatsapp ? `<a href="https://wa.me/${e.whatsapp}" target="_blank" class="btn btn-ws py-2 w-100"><i class="bi bi-whatsapp me-2"></i> Contactar</a>` : ''}
                         </div>
                     </div>
                 </div>
             `).join('');
-        } catch(e) {
-            listado.innerHTML = "<p class='text-center text-muted w-100 mt-4'>Servidor despertando... Por favor, espera 30 segundos y recarga.</p>";
-        }
+        } catch(e) { listado.innerHTML = "<p class='text-center w-100'>Cargando servidor...</p>"; }
     }
 
-    // El resto de funciones (subirImg, login, save, etc.) se mantienen igual pero usando la API_URL vacía.
     async function subirImg(input) {
         if(!input.files[0]) return;
         const f = new FormData(); f.append("image", input.files[0]);
@@ -275,7 +260,7 @@
         }
     }
 
-    function goEmpresa() { token ? show('perfil') : show('login'); }
+    function goEmpresa() { localStorage.getItem('lh-token') ? show('perfil') : show('login'); }
 
     async function login() {
         const email = document.getElementById('l-e').value;
@@ -284,27 +269,46 @@
             method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password})
         });
         const d = await res.json();
-        if(d.token) { localStorage.setItem('lh-token', d.token); location.reload(); } else alert("❌ " + d.error);
+        if(d.token) {
+            localStorage.setItem('lh-token', d.token);
+            location.reload();
+        } else alert("❌ " + d.error);
     }
 
+    // --- FUNCIÓN SAVE MEJORADA ---
     async function save() {
+        const token = localStorage.getItem('lh-token');
         const emailConf = document.getElementById('edit-confirm-email').value;
         const passConf = document.getElementById('edit-confirm-pass').value;
-        if(!emailConf || !passConf) return alert("⚠️ Introduce tus datos de seguridad.");
-        const res = await fetch(`${API_URL}/api/empresa/perfil`, {
-            method: 'PUT', headers: {'Content-Type': 'application/json', 'auth-token': token},
-            body: JSON.stringify({
-                emailConfirm: emailConf, passwordConfirm: passConf,
-                descripcion: document.getElementById('edit-desc').value, whatsapp: document.getElementById('edit-ws').value,
-                direccion: document.getElementById('edit-dir').value, logoUrl: document.getElementById('edit-url').value
-            })
-        });
-        const d = await res.json();
-        if(res.ok) { alert("✅ Guardado"); show('public'); } else alert("❌ " + d.error);
+
+        if(!emailConf || !passConf) return alert("⚠️ Escribe tu email y clave en el cuadro de seguridad para confirmar.");
+        if(!token) return alert("Sesión expirada. Por favor, vuelve a entrar.");
+
+        try {
+            const res = await fetch(`${API_URL}/api/empresa/perfil`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json', 'auth-token': token},
+                body: JSON.stringify({
+                    emailConfirm: emailConf,
+                    passwordConfirm: passConf,
+                    descripcion: document.getElementById('edit-desc').value,
+                    whatsapp: document.getElementById('edit-ws').value,
+                    direccion: document.getElementById('edit-dir').value,
+                    logoUrl: document.getElementById('edit-url').value
+                })
+            });
+            const d = await res.json();
+            if(res.ok) {
+                alert("✅ ¡Cambios guardados!");
+                show('public');
+            } else {
+                alert("❌ Error: " + d.error);
+            }
+        } catch(e) { alert("Error al conectar con el servidor."); }
     }
 
     function askAdmin() {
-        const p = prompt("Clave Maestra:");
+        const p = prompt("Clave:");
         if(p === "MegasGaming@123") { sessionStorage.setItem('ak', p); show('admin'); renderAdmin(); }
     }
 
@@ -315,10 +319,10 @@
         const data = await res.json();
         document.getElementById('adm-table').innerHTML = data.map(e => `
             <tr>
-                <td>${e.nombre}</td><td>${e.categoria}</td><td><span class="badge bg-secondary">${e.plan}</span></td>
+                <td>${e.nombre}</td><td>${e.categoria}</td><td>${e.plan}</td>
                 <td>
-                    <button class="btn btn-info btn-sm text-white py-0" onclick='prepEdit(${JSON.stringify(e)})'>Editar</button>
-                    <button class="btn btn-danger btn-sm py-0" onclick="delAdm('${e._id}')">X</button>
+                    <button class="btn btn-info btn-sm text-white" onclick='prepEdit(${JSON.stringify(e)})'>E</button>
+                    <button class="btn btn-danger btn-sm" onclick="delAdm('${e._id}')">X</button>
                 </td>
             </tr>
         `).join('');
@@ -332,9 +336,7 @@
     }
 
     function cancelAdminEdit() {
-        document.getElementById('adm-id').value = ""; document.getElementById('adm-n').value = "";
-        document.getElementById('adm-e').value = ""; document.getElementById('adm-cat-input').value = "";
-        document.getElementById('adm-p').value = ""; document.getElementById('adm-p-box').classList.remove('hidden');
+        document.getElementById('adm-id').value = ""; document.getElementById('adm-p-box').classList.remove('hidden');
         document.getElementById('btn-adm-save').innerText = "CREAR"; document.getElementById('btn-adm-cancel').classList.add('hidden');
     }
 
@@ -348,24 +350,29 @@
         const method = id ? 'PUT' : 'POST'; const url = id ? `${API_URL}/api/admin/empresa/${id}` : `${API_URL}/api/admin/registrar`;
         const res = await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
         const d = await res.json(); alert(d.mensaje || d.error);
-        cancelAdminEdit(); renderAdmin(); loadCategories();
+        cancelAdminEdit(); renderAdmin();
     }
 
     async function delAdm(id) {
-        if(confirm("¿Borrar definitivamente?")) {
+        if(confirm("¿Borrar?")) {
             await fetch(`${API_URL}/api/admin/empresa/${id}?auth=${sessionStorage.getItem('ak')}`, { method: 'DELETE' });
             renderAdmin();
         }
     }
 
-    function logout() { localStorage.clear(); location.reload(); }
+    function logout() { localStorage.clear(); location.href = "/"; }
 
-    if(token) {
+    // Carga de perfil si hay token
+    const storedToken = localStorage.getItem('lh-token');
+    if(storedToken) {
         document.getElementById('logout-btn').classList.remove('hidden');
-        fetch(`${API_URL}/api/empresa/perfil`, {headers: {'auth-token': token}}).then(r=>r.json()).then(e=>{
-            document.getElementById('edit-desc').value = e.descripcion || ''; document.getElementById('edit-ws').value = e.whatsapp || '';
-            document.getElementById('edit-dir').value = e.direccion || ''; document.getElementById('edit-preview').src = e.logoUrl || '';
-            document.getElementById('edit-url').value = e.logoUrl || ''; document.getElementById('edit-confirm-email').value = e.email || '';
+        fetch(`${API_URL}/api/empresa/perfil`, {headers: {'auth-token': storedToken}}).then(r=>r.json()).then(e=>{
+            document.getElementById('edit-desc').value = e.descripcion || '';
+            document.getElementById('edit-ws').value = e.whatsapp || '';
+            document.getElementById('edit-dir').value = e.direccion || '';
+            document.getElementById('edit-preview').src = e.logoUrl || 'https://via.placeholder.com/200';
+            document.getElementById('edit-url').value = e.logoUrl || '';
+            document.getElementById('edit-confirm-email').value = e.email || '';
         }).catch(e=>console.log("Sesión inválida"));
     }
 
