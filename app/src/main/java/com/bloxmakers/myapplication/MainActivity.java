@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private List<JSONObject> empresasOriginal = new ArrayList<>();
     private List<JSONObject> empresasFiltradas = new ArrayList<>();
     private EmpresaAdapter adapter;
-    private final String API_URL = "http://paloma.hidencloud.com:24624/api/empresas";
+    private final String API_URL = "https://localhub-proyecto.onrender.com";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
