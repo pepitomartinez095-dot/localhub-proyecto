@@ -17,5 +17,9 @@
     "url": "https://github.com/pepitomartinez095-dot/localhub-proyecto/issues"
   },
   "homepage": "https://github.com/pepitomartinez095-dot/localhub-proyecto#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
 }
