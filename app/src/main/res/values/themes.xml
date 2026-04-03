@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.LocalHub" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#0055ff</item>
+        <item name="android:statusBarColor">#0055ff</item>
+    </style>
+</resources>
