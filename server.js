@@ -4,6 +4,7 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static('public'));
 
 // Base de datos simulada en memoria (Para empezar rápido)
 let empresas = [
@@ -97,7 +98,9 @@ app.delete('/api/admin/empresa/:id', (req, res) => {
     res.json({ mensaje: "Empresa borrada" });
 });
 
-// Iniciar servidor
-app.listen(3000, () => {
-    console.log("🚀 Servidor LocalHub funcionando en http://localhost:3000");
+// Busca el final de tu archivo y cámbialo por esto:
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor funcionando en el puerto ${PORT}`);
 });
