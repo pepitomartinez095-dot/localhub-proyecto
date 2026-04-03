@@ -188,7 +188,9 @@
 <script>
     const IMGBB = "ea6e5df385b34b9d4479cabccf7d7b15";
     let token = localStorage.getItem('lh-token');
-    const API_URL = "http://localhost:3000"; // Cambiar a tu IP cuando lo subas
+
+    // --- CAMBIO CLAVE: USAR RUTAS RELATIVAS PARA RENDER ---
+    const API_URL = "";
 
     function show(id) {
         document.querySelectorAll('.container').forEach(v => v.classList.add('hidden'));
@@ -208,7 +210,7 @@
         const t = document.getElementById('plan-tel').value;
         if(!n || !p || !t) return alert("Rellena todos los campos");
         const msg = `Hola! Quiero registrar mi negocio "${n}" con el plan ${p}. Mi teléfono es ${t}.`;
-        window.open(`https://wa.me/34600000000?text=${encodeURIComponent(msg)}`, '_blank'); // PON TU NUMERO AQUI
+        window.open(`https://wa.me/34600000000?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
     async function loadCategories() {
@@ -216,24 +218,31 @@
             const res = await fetch(`${API_URL}/api/categorias`);
             const cats = await res.json();
             const select = document.getElementById('filter-cat');
+            if(!select) return;
             const currentVal = select.value;
             select.innerHTML = '<option value="Todas">Todas las categorías</option>';
             cats.forEach(c => { if(c) select.innerHTML += `<option value="${c}">${c}</option>`; });
             select.value = currentVal;
-        } catch(e) { console.log("Servidor no conectado"); }
+        } catch(e) { console.log("Error cargando categorías"); }
     }
 
     async function load() {
+        const listado = document.getElementById('listado');
         try {
             const filter = document.getElementById('filter-cat').value;
             const res = await fetch(`${API_URL}/api/empresas`);
+            if(!res.ok) throw new Error();
             let data = await res.json();
-            
-            // Ordenar: Premium primero
+
             data.sort((a, b) => (a.plan === 'premium' ? -1 : (b.plan === 'premium' ? 1 : 0)));
             if(filter !== "Todas") data = data.filter(e => e.categoria === filter);
 
-            document.getElementById('listado').innerHTML = data.map(e => `
+            if(data.length === 0) {
+                listado.innerHTML = "<p class='text-center text-muted w-100 mt-4'>No hay negocios registrados aún.</p>";
+                return;
+            }
+
+            listado.innerHTML = data.map(e => `
                 <div class="col">
                     <div class="card card-biz ${e.plan}">
                         <div class="img-box"><img src="${e.logoUrl || 'https://via.placeholder.com/300'}" alt="${e.nombre}"></div>
@@ -249,9 +258,12 @@
                     </div>
                 </div>
             `).join('');
-        } catch(e) { document.getElementById('listado').innerHTML = "<p class='text-center text-muted'>Conecta el servidor Backend para ver los negocios.</p>"; }
+        } catch(e) {
+            listado.innerHTML = "<p class='text-center text-muted w-100 mt-4'>Servidor despertando... Por favor, espera 30 segundos y recarga.</p>";
+        }
     }
 
+    // El resto de funciones (subirImg, login, save, etc.) se mantienen igual pero usando la API_URL vacía.
     async function subirImg(input) {
         if(!input.files[0]) return;
         const f = new FormData(); f.append("image", input.files[0]);
@@ -356,7 +368,7 @@
             document.getElementById('edit-url').value = e.logoUrl || ''; document.getElementById('edit-confirm-email').value = e.email || '';
         }).catch(e=>console.log("Sesión inválida"));
     }
-    
+
     show('public');
 </script>
 </body>
