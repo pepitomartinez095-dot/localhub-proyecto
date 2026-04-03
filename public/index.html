@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalHub | Directorio Profesional</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root { --blue: #0055ff; --gold: #ffc107; --bg: #f4f7ff; }
+        body { background: var(--bg); font-family: 'Inter', sans-serif; }
+        .navbar { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 0.8rem 0; }
+        .navbar-brand img { height: 50px; border-radius: 8px; }
+        .search-container { background: white; padding: 25px; border-radius: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 30px; border: 1px solid #eee; }
+        .card-biz { border: none; border-radius: 20px; transition: 0.3s; background: white; overflow: hidden; height: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .card-biz:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,85,255,0.1); }
+        .card-biz.premium { border: 2px solid var(--gold); }
+        .img-box { height: 180px; background: #f0f0f0; overflow: hidden; }
+        .img-box img { width: 100%; height: 100%; object-fit: cover; }
+        .cat-tag { font-size: 0.75rem; font-weight: bold; padding: 4px 12px; border-radius: 50px; background: #eef2ff; color: var(--blue); text-transform: uppercase; display: inline-block; margin-bottom: 8px; }
+        .btn-float { position: fixed; bottom: 20px; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.2); transition: 0.3s; }
+        #btn-admin-access { left: 20px; background: #333; opacity: 0.3; }
+        #btn-empresa-access { right: 20px; background: var(--blue); }
+        .hidden { display: none !important; }
+        .back-btn { margin-bottom: 20px; border: none; background: none; color: #666; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-ws { background: #25d366; color: white; border-radius: 12px; font-weight: bold; border: none; text-decoration: none; display: block; text-align: center; }
+        .security-box { background: #fffcfc; border: 1px dashed #ffcccc; padding: 15px; border-radius: 15px; margin-top: 20px; }
+        .price-card { border: none; border-radius: 25px; transition: 0.3s; background: white; }
+        .price-card.featured { border: 2px solid var(--blue); transform: scale(1.05); z-index: 10; }
+        .price-card h2 { font-weight: 800; color: var(--blue); }
+        .price-card ul { padding: 0; list-style: none; text-align: left; }
+        .price-card ul li { margin-bottom: 12px; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+        .price-card ul li i { color: #25d366; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar sticky-top">
+    <div class="container d-flex justify-content-between align-items-center">
+        <a class="navbar-brand d-flex align-items-center" style="cursor:pointer" onclick="show('public')">
+            <span class="ms-2 fw-bold fs-3 text-primary">LocalHub</span>
+        </a>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm fw-bold" onclick="show('public')">Inicio</button>
+            <button class="btn btn-sm fw-bold" onclick="show('precios')">Planes</button>
+            <button id="logout-btn" class="btn btn-danger btn-sm rounded-pill hidden" onclick="logout()">Salir</button>
+        </div>
+    </div>
+</nav>
+
+<div id="view-public" class="container py-4">
+    <div class="search-container text-center">
+        <h4 class="fw-bold mb-3">¿Qué servicio necesitas hoy?</h4>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <select id="filter-cat" class="form-select form-select-lg rounded-pill border-primary text-center" onchange="load()">
+                    <option value="Todas">Todas las categorías</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="row row-cols-1 row-cols-md-3 g-4" id="listado"></div>
+</div>
+
+<div id="view-precios" class="container py-5 hidden">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Impulsa tu Negocio en LocalHub</h1>
+        <p class="text-muted">Elige el plan que mejor se adapte a tus necesidades</p>
+    </div>
+    <div class="row g-4 justify-content-center mb-5">
+        <div class="col-md-4">
+            <div class="card price-card p-4 shadow-sm h-100 text-center">
+                <h5 class="fw-bold text-muted">BÁSICO</h5>
+                <h2>0€<span class="fs-6 text-muted">/siempre</span></h2><hr>
+                <ul>
+                    <li><i class="bi bi-check-circle-fill"></i> Presencia en el directorio</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Datos de contacto básicos</li>
+                </ul>
+                <button class="btn btn-outline-primary w-100 rounded-pill mt-auto fw-bold" onclick="selectPlan('Gratis')">Empezar</button>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card price-card featured p-4 shadow h-100 text-center">
+                <span class="badge bg-primary rounded-pill mb-2">MÁS POPULAR</span>
+                <h5 class="fw-bold">NEGOCIO</h5>
+                <h2>9.90€<span class="fs-6 text-muted">/mes</span></h2><hr>
+                <ul>
+                    <li><i class="bi bi-check-circle-fill"></i> Botón directo a WhatsApp</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Edición de perfil en tiempo real</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Logotipo personalizado</li>
+                </ul>
+                <button class="btn btn-primary w-100 rounded-pill mt-auto fw-bold" onclick="selectPlan('Normal (9.90€)')">Contratar</button>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card price-card p-4 shadow-sm h-100 text-center">
+                <h5 class="fw-bold text-warning">PREMIUM ⭐</h5>
+                <h2>19.90€<span class="fs-6 text-muted">/mes</span></h2><hr>
+                <ul>
+                    <li><i class="bi bi-check-circle-fill"></i> <strong>Aparece primero en las búsquedas</strong></li>
+                    <li><i class="bi bi-check-circle-fill"></i> Insignia dorada de Verificado</li>
+                </ul>
+                <button class="btn btn-warning w-100 rounded-pill mt-auto fw-bold" onclick="selectPlan('Premium (19.90€)')">Ser VIP</button>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-6 card p-4 border-0 shadow-lg rounded-4" id="form-planes">
+            <h4 class="fw-bold text-center mb-4"><i class="bi bi-whatsapp"></i> Solicitar Alta</h4>
+            <input type="text" id="plan-name" class="form-control mb-3" placeholder="Nombre de tu Negocio">
+            <input type="text" id="plan-type" class="form-control mb-3 bg-light" readonly placeholder="Selecciona un plan arriba">
+            <input type="text" id="plan-tel" class="form-control mb-4" placeholder="Tu teléfono móvil">
+            <button class="btn btn-dark w-100 fw-bold py-3" onclick="enviarSolicitud()"><i class="bi bi-send"></i> ENVIAR SOLICITUD AL ADMIN</button>
+        </div>
+    </div>
+</div>
+
+<div id="view-login" class="container py-5 hidden">
+    <button class="back-btn" onclick="show('public')"><i class="bi bi-arrow-left"></i> Volver</button>
+    <div class="row justify-content-center">
+        <div class="col-md-4 card p-4 border-0 shadow-sm rounded-4">
+            <h4 class="text-center fw-bold mb-4">Acceso Empresas</h4>
+            <input type="email" id="l-e" class="form-control mb-3" placeholder="Correo electrónico">
+            <input type="password" id="l-p" class="form-control mb-3" placeholder="Contraseña">
+            <button class="btn btn-primary w-100 fw-bold py-2" onclick="login()">ENTRAR</button>
+        </div>
+    </div>
+</div>
+
+<div id="view-perfil" class="container py-5 hidden">
+    <button class="back-btn" onclick="show('public')"><i class="bi bi-arrow-left"></i> Volver</button>
+    <div class="card p-4 border-0 shadow-sm rounded-4">
+        <h3 class="fw-bold mb-4">Configuración de tu Negocio</h3>
+        <div class="row g-4">
+            <div class="col-md-4 text-center border-end">
+                <img id="edit-preview" src="https://via.placeholder.com/200" class="img-fluid rounded-4 mb-3 shadow-sm" style="width:200px; height:200px; object-fit:cover;">
+                <label class="btn btn-dark btn-sm w-100">Cambiar Logo <input type="file" hidden onchange="subirImg(this)"></label>
+                <input type="hidden" id="edit-url">
+            </div>
+            <div class="col-md-8 px-md-4">
+                <textarea id="edit-desc" class="form-control mb-3" rows="3" placeholder="Descripción de tu negocio..."></textarea>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><input type="text" id="edit-ws" class="form-control" placeholder="WhatsApp (Ej: 34600112233)"></div>
+                    <div class="col-md-6 mb-3"><input type="text" id="edit-dir" class="form-control" placeholder="Dirección física"></div>
+                </div>
+                <div class="security-box">
+                    <h6 class="fw-bold text-danger mb-2"><i class="bi bi-shield-lock"></i> Seguridad</h6>
+                    <p class="small text-muted mb-2">Confirma tus datos para guardar cambios.</p>
+                    <input type="email" id="edit-confirm-email" class="form-control form-control-sm mb-2" placeholder="Tu Correo">
+                    <input type="password" id="edit-confirm-pass" class="form-control form-control-sm" placeholder="Tu Contraseña">
+                </div>
+                <button class="btn btn-success btn-lg w-100 mt-3 fw-bold shadow-sm" onclick="save()">GUARDAR CAMBIOS</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="view-admin" class="container py-5 hidden">
+    <button class="back-btn" onclick="show('public')"><i class="bi bi-arrow-left"></i> Salir de Admin</button>
+    <div class="card p-4 bg-dark text-white rounded-4 shadow">
+        <h4 class="fw-bold mb-4">Panel Maestro</h4>
+        <div class="row g-2 mb-4 border-bottom pb-4">
+            <input type="hidden" id="adm-id">
+            <div class="col-md-2"><input type="text" id="adm-n" class="form-control form-control-sm" placeholder="Nombre"></div>
+            <div class="col-md-2"><input type="email" id="adm-e" class="form-control form-control-sm" placeholder="Email"></div>
+            <div class="col-md-2" id="adm-p-box"><input type="password" id="adm-p" class="form-control form-control-sm" placeholder="Pass"></div>
+            <div class="col-md-2"><input type="text" id="adm-cat-input" class="form-control form-control-sm" placeholder="Categoría"></div>
+            <div class="col-md-2">
+                <select id="adm-plan" class="form-select form-select-sm">
+                    <option value="gratis">Gratis</option><option value="normal">Normal</option><option value="premium">Premium</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button id="btn-adm-save" class="btn btn-primary btn-sm w-100" onclick="regAdmin()">CREAR</button>
+                <button id="btn-adm-cancel" class="btn btn-secondary btn-sm w-100 mt-1 hidden" onclick="cancelAdminEdit()">CANCELAR</button>
+            </div>
+        </div>
+        <table class="table table-dark table-hover align-middle small">
+            <thead><tr><th>Nombre</th><th>Categoría</th><th>Plan</th><th>Acciones</th></tr></thead>
+            <tbody id="adm-table"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="btn-admin-access" class="btn-float" onclick="askAdmin()"><i class="bi bi-shield-lock-fill"></i></div>
+<div id="btn-empresa-access" class="btn-float" onclick="goEmpresa()"><i class="bi bi-shop"></i></div>
+
+<script>
+    const IMGBB = "ea6e5df385b34b9d4479cabccf7d7b15";
+    let token = localStorage.getItem('lh-token');
+    const API_URL = "http://localhost:3000"; // Cambiar a tu IP cuando lo subas
+
+    function show(id) {
+        document.querySelectorAll('.container').forEach(v => v.classList.add('hidden'));
+        document.getElementById(`view-${id}`).classList.remove('hidden');
+        if(id === 'public') { loadCategories(); load(); }
+        window.scrollTo(0,0);
+    }
+
+    function selectPlan(nombrePlan) {
+        document.getElementById('plan-type').value = nombrePlan;
+        document.getElementById('form-planes').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function enviarSolicitud() {
+        const n = document.getElementById('plan-name').value;
+        const p = document.getElementById('plan-type').value;
+        const t = document.getElementById('plan-tel').value;
+        if(!n || !p || !t) return alert("Rellena todos los campos");
+        const msg = `Hola! Quiero registrar mi negocio "${n}" con el plan ${p}. Mi teléfono es ${t}.`;
+        window.open(`https://wa.me/34600000000?text=${encodeURIComponent(msg)}`, '_blank'); // PON TU NUMERO AQUI
+    }
+
+    async function loadCategories() {
+        try {
+            const res = await fetch(`${API_URL}/api/categorias`);
+            const cats = await res.json();
+            const select = document.getElementById('filter-cat');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="Todas">Todas las categorías</option>';
+            cats.forEach(c => { if(c) select.innerHTML += `<option value="${c}">${c}</option>`; });
+            select.value = currentVal;
+        } catch(e) { console.log("Servidor no conectado"); }
+    }
+
+    async function load() {
+        try {
+            const filter = document.getElementById('filter-cat').value;
+            const res = await fetch(`${API_URL}/api/empresas`);
+            let data = await res.json();
+            
+            // Ordenar: Premium primero
+            data.sort((a, b) => (a.plan === 'premium' ? -1 : (b.plan === 'premium' ? 1 : 0)));
+            if(filter !== "Todas") data = data.filter(e => e.categoria === filter);
+
+            document.getElementById('listado').innerHTML = data.map(e => `
+                <div class="col">
+                    <div class="card card-biz ${e.plan}">
+                        <div class="img-box"><img src="${e.logoUrl || 'https://via.placeholder.com/300'}" alt="${e.nombre}"></div>
+                        <div class="card-body p-4">
+                            <span class="cat-tag">${e.categoria || 'Local'}</span>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h5 class="fw-bold mb-0">${e.nombre}</h5>
+                                ${e.plan === 'premium' ? '<i class="bi bi-patch-check-fill text-warning fs-5"></i>' : ''}
+                            </div>
+                            <p class="small text-muted mb-3">${e.descripcion || 'Sin descripción'}</p>
+                            ${e.whatsapp ? `<a href="https://wa.me/${e.whatsapp}" target="_blank" class="btn btn-ws py-2 w-100"><i class="bi bi-whatsapp me-2"></i> Contactar</a>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } catch(e) { document.getElementById('listado').innerHTML = "<p class='text-center text-muted'>Conecta el servidor Backend para ver los negocios.</p>"; }
+    }
+
+    async function subirImg(input) {
+        if(!input.files[0]) return;
+        const f = new FormData(); f.append("image", input.files[0]);
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB}`, { method: "POST", body: f });
+        const d = await res.json();
+        if(d.data) {
+            document.getElementById('edit-preview').src = d.data.url;
+            document.getElementById('edit-url').value = d.data.url;
+        }
+    }
+
+    function goEmpresa() { token ? show('perfil') : show('login'); }
+
+    async function login() {
+        const email = document.getElementById('l-e').value;
+        const password = document.getElementById('l-p').value;
+        const res = await fetch(`${API_URL}/api/empresa/login`, {
+            method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password})
+        });
+        const d = await res.json();
+        if(d.token) { localStorage.setItem('lh-token', d.token); location.reload(); } else alert("❌ " + d.error);
+    }
+
+    async function save() {
+        const emailConf = document.getElementById('edit-confirm-email').value;
+        const passConf = document.getElementById('edit-confirm-pass').value;
+        if(!emailConf || !passConf) return alert("⚠️ Introduce tus datos de seguridad.");
+        const res = await fetch(`${API_URL}/api/empresa/perfil`, {
+            method: 'PUT', headers: {'Content-Type': 'application/json', 'auth-token': token},
+            body: JSON.stringify({
+                emailConfirm: emailConf, passwordConfirm: passConf,
+                descripcion: document.getElementById('edit-desc').value, whatsapp: document.getElementById('edit-ws').value,
+                direccion: document.getElementById('edit-dir').value, logoUrl: document.getElementById('edit-url').value
+            })
+        });
+        const d = await res.json();
+        if(res.ok) { alert("✅ Guardado"); show('public'); } else alert("❌ " + d.error);
+    }
+
+    function askAdmin() {
+        const p = prompt("Clave Maestra:");
+        if(p === "MegasGaming@123") { sessionStorage.setItem('ak', p); show('admin'); renderAdmin(); }
+    }
+
+    async function renderAdmin() {
+        const res = await fetch(`${API_URL}/api/admin/listado`, {
+            method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({auth: sessionStorage.getItem('ak')})
+        });
+        const data = await res.json();
+        document.getElementById('adm-table').innerHTML = data.map(e => `
+            <tr>
+                <td>${e.nombre}</td><td>${e.categoria}</td><td><span class="badge bg-secondary">${e.plan}</span></td>
+                <td>
+                    <button class="btn btn-info btn-sm text-white py-0" onclick='prepEdit(${JSON.stringify(e)})'>Editar</button>
+                    <button class="btn btn-danger btn-sm py-0" onclick="delAdm('${e._id}')">X</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function prepEdit(e) {
+        document.getElementById('adm-id').value = e._id; document.getElementById('adm-n').value = e.nombre;
+        document.getElementById('adm-e').value = e.email; document.getElementById('adm-cat-input').value = e.categoria;
+        document.getElementById('adm-plan').value = e.plan; document.getElementById('adm-p-box').classList.add('hidden');
+        document.getElementById('btn-adm-save').innerText = "ACTUALIZAR"; document.getElementById('btn-adm-cancel').classList.remove('hidden');
+    }
+
+    function cancelAdminEdit() {
+        document.getElementById('adm-id').value = ""; document.getElementById('adm-n').value = "";
+        document.getElementById('adm-e').value = ""; document.getElementById('adm-cat-input').value = "";
+        document.getElementById('adm-p').value = ""; document.getElementById('adm-p-box').classList.remove('hidden');
+        document.getElementById('btn-adm-save').innerText = "CREAR"; document.getElementById('btn-adm-cancel').classList.add('hidden');
+    }
+
+    async function regAdmin() {
+        const id = document.getElementById('adm-id').value;
+        const body = {
+            auth: sessionStorage.getItem('ak'), nombre: document.getElementById('adm-n').value,
+            email: document.getElementById('adm-e').value, password: document.getElementById('adm-p').value,
+            categoria: document.getElementById('adm-cat-input').value, plan: document.getElementById('adm-plan').value
+        };
+        const method = id ? 'PUT' : 'POST'; const url = id ? `${API_URL}/api/admin/empresa/${id}` : `${API_URL}/api/admin/registrar`;
+        const res = await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+        const d = await res.json(); alert(d.mensaje || d.error);
+        cancelAdminEdit(); renderAdmin(); loadCategories();
+    }
+
+    async function delAdm(id) {
+        if(confirm("¿Borrar definitivamente?")) {
+            await fetch(`${API_URL}/api/admin/empresa/${id}?auth=${sessionStorage.getItem('ak')}`, { method: 'DELETE' });
+            renderAdmin();
+        }
+    }
+
+    function logout() { localStorage.clear(); location.reload(); }
+
+    if(token) {
+        document.getElementById('logout-btn').classList.remove('hidden');
+        fetch(`${API_URL}/api/empresa/perfil`, {headers: {'auth-token': token}}).then(r=>r.json()).then(e=>{
+            document.getElementById('edit-desc').value = e.descripcion || ''; document.getElementById('edit-ws').value = e.whatsapp || '';
+            document.getElementById('edit-dir').value = e.direccion || ''; document.getElementById('edit-preview').src = e.logoUrl || '';
+            document.getElementById('edit-url').value = e.logoUrl || ''; document.getElementById('edit-confirm-email').value = e.email || '';
+        }).catch(e=>console.log("Sesión inválida"));
+    }
+    
+    show('public');
+</script>
+</body>
+</html>
